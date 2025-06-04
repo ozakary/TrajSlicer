@@ -22,8 +22,8 @@ A versatile Python tool for converting LAMMPS dump files to XYZ format and sampl
 ### Setup
 1. Clone this repository:
 ```bash
-git clone https://github.com/yourusername/lammps-xyz-converter.git
-cd lammps-xyz-converter
+git clone https://github.com/ozakary/TrajSlicer.git
+cd TrajSlicer
 ```
 
 2. Install optional dependencies:
@@ -33,14 +33,14 @@ pip install tqdm
 
 3. Make the script executable:
 ```bash
-chmod +x lammps_xyz_converter.py
+chmod +x trajslicer_src.py
 ```
 
 ## Usage
 
 ### Basic Syntax
 ```bash
-python lammps_xyz_converter.py input_file output_file [options]
+python trajslicer_src.py input_file output_file [options]
 ```
 
 ### Command-Line Options
@@ -59,27 +59,27 @@ python lammps_xyz_converter.py input_file output_file [options]
 
 **Convert entire trajectory:**
 ```bash
-python lammps_xyz_converter.py production.dump trajectory.xyz
+python trajslicer_src.py production.dump trajectory.xyz
 ```
 
 **Sample every 10th frame:**
 ```bash
-python lammps_xyz_converter.py production.dump sampled.xyz --sample 10
+python trajslicer_src.py production.dump sampled.xyz --sample 10
 ```
 
 **Extract first 1000 snapshots:**
 ```bash
-python lammps_xyz_converter.py production.dump first_1000.xyz --start 0 --end 999
+python trajslicer_src.py production.dump first_1000.xyz --start 0 --end 999
 ```
 
 **Keep only Xenon atoms (type 2), every 5th frame:**
 ```bash
-python lammps_xyz_converter.py production.dump xe_only.xyz --filter 2 --sample 5
+python trajslicer_src.py production.dump xe_only.xyz --filter 2 --sample 5
 ```
 
 **Custom element labels and range selection:**
 ```bash
-python lammps_xyz_converter.py production.dump custom.xyz \
+python trajslicer_src.py production.dump custom.xyz \
     --labels 1:Carbon 2:Xenon \
     --start 500 --end 1500 \
     --sample 2
@@ -89,17 +89,17 @@ python lammps_xyz_converter.py production.dump custom.xyz \
 
 **Sample existing XYZ file (every 10th frame):**
 ```bash
-python lammps_xyz_converter.py large_trajectory.xyz sampled.xyz --sample 10
+python trajslicer_src.py large_trajectory.xyz sampled.xyz --sample 10
 ```
 
 **Extract specific frame range from XYZ:**
 ```bash
-python lammps_xyz_converter.py trajectory.xyz subset.xyz --start 1000 --end 2000
+python trajslicer_src.py trajectory.xyz subset.xyz --start 1000 --end 2000
 ```
 
 **Combine range and sampling for XYZ:**
 ```bash
-python lammps_xyz_converter.py trajectory.xyz final.xyz \
+python trajslicer_src.py trajectory.xyz final.xyz \
     --start 0 --end 5000 \
     --sample 25
 ```
