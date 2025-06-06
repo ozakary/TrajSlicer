@@ -1,5 +1,3 @@
-# TrajSlicer
-
 ![Logo](./trajslicer_logo.svg)
 
 ---
