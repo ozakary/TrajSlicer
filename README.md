@@ -2,6 +2,8 @@
 
 ![Logo](./trajslicer_logo.svg)
 
+---
+
 📄 Author: **Ouail Zakary**  
 - 📧 Email: [Ouail.Zakary@oulu.fi](mailto:Ouail.Zakary@oulu.fi)  
 - 🔗 ORCID: [0000-0002-7793-3306](https://orcid.org/0000-0002-7793-3306)  
