@@ -16,8 +16,9 @@ A versatile Python tool for converting LAMMPS dump files to XYZ format and sampl
 - Process both LAMMPS dump files and existing XYZ files
 - Extract every nth frame with customizable sampling rates
 - Specify exact start and end snapshots (0-based indexing)
-- Keep only specific atom types (LAMMPS files only)
+- Assign and keep only specific atom types (LAMMPS files only)
 - Map LAMMPS atom types to element symbols
+- Devide the MD trajectory into sub-trajectories (chunks)
 - Intelligently detects input file format
 - Real-time progress bars with `tqdm`
 - Processes large trajectories without loading entire files into memory
@@ -59,6 +60,7 @@ python trajslicer_src.py input_file output_file [options]
 | `--sample N` | Sample every Nth frame | `--sample 10` |
 | `--start N` | Starting snapshot index (0-based) | `--start 100` |
 | `--end N` | Ending snapshot index (0-based, inclusive) | `--end 999` |
+| `--chunks N` | Sequentially devides the trajectory into chunks (1-based, inclusive) | `--chunks 10` |
 | `--filter TYPE [TYPE ...]` | Keep only specified atom types (LAMMPS only) | `--filter 1 2` |
 | `--labels TYPE:ELEMENT [TYPE:ELEMENT ...]` | Custom element labels (LAMMPS only) | `--labels 1:C 2:Xe` |
 
@@ -89,7 +91,7 @@ python trajslicer_src.py production.dump xe_only.xyz --filter 2 --sample 5
 **Custom element labels and range selection:**
 ```bash
 python trajslicer_src.py production.dump custom.xyz \
-    --labels 1:Carbon 2:Xenon \
+    --labels 1:C 2:Xe \
     --start 500 --end 1500 \
     --sample 2
 ```
@@ -111,6 +113,14 @@ python trajslicer_src.py trajectory.xyz subset.xyz --start 1000 --end 2000
 python trajslicer_src.py trajectory.xyz final.xyz \
     --start 0 --end 5000 \
     --sample 25
+```
+
+**Devide MD trajectory to chunks:**
+```bash
+python trajslicer_src.py trajectory.xyz final.xyz \
+    --start 0 --end 5000 \
+    --sample 25 \
+    --chunks 10
 ```
 
 ## File Format Support
