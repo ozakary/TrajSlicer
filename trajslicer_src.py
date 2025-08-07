@@ -348,7 +348,7 @@ def chunk_xyz_file(input_file, output_base, num_chunks, sample_rate=1, start_fra
 
 def convert_frame_to_xyz(frame_lines, outfile, filter_type=None, atom_labels=None, index_assignments=None):
     """
-    Convert a single LAMMPS frame to XYZ format
+    Convert a single LAMMPS frame to XYZ format with proper triclinic box handling
     
     Args:
         frame_lines (list): Lines for a single frame
@@ -361,6 +361,7 @@ def convert_frame_to_xyz(frame_lines, outfile, filter_type=None, atom_labels=Non
     Note:
         Output XYZ format includes atom ID as additional column: element x y z atom_id
         Header includes Properties specification: Properties=species:S:1:pos:R:3:id:I:1
+        Properly handles triclinic boxes with xy, xz, yz tilt factors
     """
     # Find indices of important sections
     atom_count_index = None
@@ -438,31 +439,91 @@ def convert_frame_to_xyz(frame_lines, outfile, filter_type=None, atom_labels=Non
             except (ValueError, IndexError):
                 continue  # Skip lines that cause errors
     
-    # Get box dimensions for XYZ comment line
-    box_x = None
-    box_y = None
-    box_z = None
+    # Parse box bounds with proper triclinic handling
+    lattice_matrix = None
     
     if box_bounds_index is not None and box_bounds_index + 3 <= len(frame_lines):
         try:
-            box_x_parts = frame_lines[box_bounds_index + 1].split()
-            box_y_parts = frame_lines[box_bounds_index + 2].split()
-            box_z_parts = frame_lines[box_bounds_index + 3].split()
+            # Check if this is a triclinic box by looking at the BOX BOUNDS header
+            box_header = frame_lines[box_bounds_index]
+            is_triclinic = "xy xz yz" in box_header
             
-            box_x = float(box_x_parts[1]) - float(box_x_parts[0])
-            box_y = float(box_y_parts[1]) - float(box_y_parts[0])
-            box_z = float(box_z_parts[1]) - float(box_z_parts[0])
-        except (ValueError, IndexError):
-            pass
+            # Parse box bounds lines
+            x_bounds = frame_lines[box_bounds_index + 1].split()
+            y_bounds = frame_lines[box_bounds_index + 2].split()
+            z_bounds = frame_lines[box_bounds_index + 3].split()
+            
+            if is_triclinic:
+                # Triclinic box: xlo_bound xhi_bound xy
+                #                ylo_bound yhi_bound xz  
+                #                zlo_bound zhi_bound yz
+                xlo_bound, xhi_bound, xy = float(x_bounds[0]), float(x_bounds[1]), float(x_bounds[2])
+                ylo_bound, yhi_bound, xz = float(y_bounds[0]), float(y_bounds[1]), float(y_bounds[2])
+                zlo_bound, zhi_bound, yz = float(z_bounds[0]), float(z_bounds[1]), float(z_bounds[2])
+                
+                # Calculate actual box lengths and lattice vectors
+                # LAMMPS triclinic box definition:
+                # xlo = xlo_bound - MIN(0.0, xy, xz, xy+xz)
+                # xhi = xhi_bound - MAX(0.0, xy, xz, xy+xz)
+                # ylo = ylo_bound - MIN(0.0, yz)
+                # yhi = yhi_bound - MAX(0.0, yz)
+                # zlo = zlo_bound
+                # zhi = zhi_bound
+                
+                xlo = xlo_bound - min(0.0, xy, xz, xy + xz)
+                xhi = xhi_bound - max(0.0, xy, xz, xy + xz)
+                ylo = ylo_bound - min(0.0, yz)
+                yhi = yhi_bound - max(0.0, yz)
+                zlo = zlo_bound
+                zhi = zhi_bound
+                
+                # Lattice vectors for triclinic box
+                lx = xhi - xlo
+                ly = yhi - ylo
+                lz = zhi - zlo
+                
+                # The lattice matrix for a triclinic box in LAMMPS format:
+                # a = (lx, 0, 0)
+                # b = (xy, ly, 0)  
+                # c = (xz, yz, lz)
+                lattice_matrix = [
+                    [lx, 0.0, 0.0],
+                    [xy, ly, 0.0],
+                    [xz, yz, lz]
+                ]
+                
+            else:
+                # Orthogonal box: just xlo xhi, ylo yhi, zlo zhi
+                xlo, xhi = float(x_bounds[0]), float(x_bounds[1])
+                ylo, yhi = float(y_bounds[0]), float(y_bounds[1])
+                zlo, zhi = float(z_bounds[0]), float(z_bounds[1])
+                
+                lx = xhi - xlo
+                ly = yhi - ylo
+                lz = zhi - zlo
+                
+                # Orthogonal lattice matrix
+                lattice_matrix = [
+                    [lx, 0.0, 0.0],
+                    [0.0, ly, 0.0],
+                    [0.0, 0.0, lz]
+                ]
+                
+        except (ValueError, IndexError) as e:
+            print(f"Warning: Could not parse box bounds: {e}")
+            lattice_matrix = None
     
     # Write the XYZ frame
     # First line: number of atoms
     outfile.write(f"{len(xyz_atom_lines)}\n")
     
-    # Second line: comment line with box dimensions, timestep, and properties
+    # Second line: comment line with lattice matrix, timestep, and properties
     comment = f"Timestep={timestep_value}"
-    if box_x is not None and box_y is not None and box_z is not None:
-        comment += f" Lattice=\"{box_x} 0.0 0.0 0.0 {box_y} 0.0 0.0 0.0 {box_z}\""
+    if lattice_matrix is not None:
+        # Format lattice matrix as required by XYZ extended format
+        # Lattice="a1 a2 a3 b1 b2 b3 c1 c2 c3" (row-major order)
+        lattice_str = " ".join([f"{lattice_matrix[i][j]:.10f}" for i in range(3) for j in range(3)])
+        comment += f" Lattice=\"{lattice_str}\""
     comment += " Properties=species:S:1:pos:R:3:id:I:1"
     outfile.write(f"{comment}\n")
     
