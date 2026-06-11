@@ -313,7 +313,7 @@ def sample_xyz_file(input_file, output_file, sample_rate=1, start_frame=None, en
 
 
 def chunk_xyz_file(input_file, output_base, num_chunks, sample_rate=1,
-                   start_frame=None, end_frame=None):
+                   start_frame=None, end_frame=None, chunk_start=1):
     """
     Split an XYZ file into multiple chunk files.
     Streams frame by frame — no full file loaded into memory.
@@ -395,12 +395,12 @@ def chunk_xyz_file(input_file, output_base, num_chunks, sample_rate=1,
     if not ext:
         ext = '.xyz'
 
-    pad = len(str(num_chunks))
+    pad = len(str(chunk_start + num_chunks - 1))
     out_files = {}
     for chunk_num in range(num_chunks):
-        fname = f"{base_name}_chunk_{chunk_num + 1:0{pad}d}{ext}"
+        fname = f"{base_name}_chunk_{chunk_num + chunk_start:0{pad}d}{ext}"
         out_files[chunk_num] = open(fname, 'w')
-        print(f"  Chunk {chunk_num + 1:0{pad}d} -> {fname}")
+        print(f"  Chunk {chunk_num + chunk_start:0{pad}d} -> {fname}")
 
     # ----------------------------------------------------------------
     # Pass 2: stream file, write selected frames to their chunk
@@ -448,8 +448,8 @@ def chunk_xyz_file(input_file, output_base, num_chunks, sample_rate=1,
     # ----------------------------------------------------------------
     print(f"\nChunking complete! Created {num_chunks} chunk files.")
     for chunk_num in range(num_chunks):
-        fname = f"{base_name}_chunk_{chunk_num + 1:0{pad}d}{ext}"
-        print(f"  Chunk {chunk_num + 1:0{pad}d}: {frames_written[chunk_num]} frames -> {fname}")
+        fname = f"{base_name}_chunk_{chunk_num + chunk_start:0{pad}d}{ext}"
+        print(f"  Chunk {chunk_num + chunk_start:0{pad}d}: {frames_written[chunk_num]} frames -> {fname}")
 
 
 # ====================================================================
@@ -479,6 +479,8 @@ if __name__ == "__main__":
                         help='Ending snapshot index, 0-based inclusive (default: last frame)')
     parser.add_argument('--chunks', type=int, default=None,
                         help='Split XYZ file into N chunks (XYZ files only)')
+    parser.add_argument('--chunk_start', type=int, default=1,
+                        help='Starting index for chunk file numbering (default: 1)')
 
     args = parser.parse_args()
 
@@ -504,6 +506,7 @@ if __name__ == "__main__":
                 sample_rate=args.sample,
                 start_frame=args.start,
                 end_frame=args.end,
+                chunk_start=args.chunk_start,
             )
         else:
             sample_xyz_file(
