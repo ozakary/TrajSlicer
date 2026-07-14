@@ -3,8 +3,8 @@
 📄 Author: **Ouail Zakary**
 - 📧 Email: [Ouail.Zakary@oulu.fi](mailto:Ouail.Zakary@oulu.fi)
 - 🔗 ORCID: [0000-0002-7793-3306](https://orcid.org/0000-0002-7793-3306)
-- 🌐 Website: [Personal Webpage](https://cc.oulu.fi/~nmrwww/members/Ouail_Zakary.html)
-- 📁 Portfolio: [GitHub Portfolio](https://ozakary.github.io/)
+- 🌐 Website: [cc.oulu.fi/nmrwww/members/Ouail_Zakary.html](https://cc.oulu.fi/~nmrwww/members/Ouail_Zakary.html)
+- 📁 Personal Website: [ozakary.github.io](https://ozakary.github.io/)
 ---
 A versatile Python tool for converting LAMMPS dump files to XYZ format and sampling molecular dynamics trajectories with precise frame control.
 ## What's New in v3
